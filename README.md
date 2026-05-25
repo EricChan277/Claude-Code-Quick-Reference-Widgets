@@ -135,7 +135,7 @@ lines. Run `install-agents.sh` or create the file manually.
 
 ## Author
 
-[EricChan277](https://github.com/EricChan277)
+[Eric Chan](https://github.com/EricChan277)
 
 ## License
 

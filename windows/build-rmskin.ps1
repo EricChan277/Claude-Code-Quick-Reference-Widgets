@@ -49,7 +49,7 @@ Get-ChildItem $SkinSrc | Where-Object {
 @"
 [rmskin]
 Name=$SkinName
-Author=EricChan277
+Author=Eric Chan
 Version=$Version
 LoadType=Skin
 Load=$SkinName\ClaudeUsage.ini
