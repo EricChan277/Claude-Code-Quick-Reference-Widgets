@@ -4,15 +4,129 @@
 
 import Foundation
 
-// MARK: - App Group
+// MARK: - Cross-process widget state
+//
+// The app-group entitlement is not available under ad-hoc signing, so
+// UserDefaults(suiteName:) always silently falls back to .standard, which
+// is *not* shared between the host app process and the widget extension
+// process.  Instead we persist state as a tiny JSON file at
+// ~/.claude/widget-state.json, which both processes can read and write
+// through the normal file sandbox (same user, no entitlement needed).
 
-/// Shared app group used for UserDefaults and cross-process coordination.
-let appGroupID = "group.dev.claudewidget"
+private let widgetStateURL: URL = {
+    return Paths.realHome.appendingPathComponent(".claude/widget-state.json")
+}()
 
-/// UserDefaults backed by the shared app group.
-var sharedDefaults: UserDefaults {
-    UserDefaults(suiteName: appGroupID) ?? .standard
+/// Thin wrapper that reads/writes ~/.claude/widget-state.json.
+/// All access is synchronous and guarded; missing keys return nil / false / "".
+enum WidgetState {
+    private struct Payload: Codable {
+        var committedQuery: String?
+        var agentsCollapsed: Bool?
+        var lastCopiedSlug: String?
+        var lastCopiedAt: Date?
+    }
+
+    private static func load() -> Payload {
+        guard let data = try? Data(contentsOf: widgetStateURL),
+              let payload = try? JSONDecoder().decode(Payload.self, from: data) else {
+            return Payload()
+        }
+        return payload
+    }
+
+    private static func save(_ payload: Payload) {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
+        guard let data = try? encoder.encode(payload) else { return }
+        // Ensure the directory exists (it must, since AgentScanner also writes here, but be safe)
+        let dir = widgetStateURL.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try? data.write(to: widgetStateURL, options: .atomic)
+    }
+
+    static func string(forKey key: String) -> String? {
+        let p = load()
+        switch key {
+        case DefaultsKey.committedQuery:  return p.committedQuery
+        case DefaultsKey.lastCopiedSlug: return p.lastCopiedSlug
+        default: return nil
+        }
+    }
+
+    static func bool(forKey key: String) -> Bool {
+        let p = load()
+        switch key {
+        case DefaultsKey.agentsCollapsed: return p.agentsCollapsed ?? false
+        default: return false
+        }
+    }
+
+    static func date(forKey key: String) -> Date? {
+        let p = load()
+        switch key {
+        case DefaultsKey.lastCopiedAt: return p.lastCopiedAt
+        default: return nil
+        }
+    }
+
+    static func set(_ value: String?, forKey key: String) {
+        var p = load()
+        switch key {
+        case DefaultsKey.committedQuery:  p.committedQuery  = value
+        case DefaultsKey.lastCopiedSlug: p.lastCopiedSlug = value
+        default: break
+        }
+        save(p)
+    }
+
+    static func set(_ value: Bool, forKey key: String) {
+        var p = load()
+        switch key {
+        case DefaultsKey.agentsCollapsed: p.agentsCollapsed = value
+        default: break
+        }
+        save(p)
+    }
+
+    static func set(_ value: Date, forKey key: String) {
+        var p = load()
+        switch key {
+        case DefaultsKey.lastCopiedAt: p.lastCopiedAt = value
+        default: break
+        }
+        save(p)
+    }
+
 }
+
+/// Legacy shim so call-sites that already read sharedDefaults continue to compile.
+/// Redirects all reads/writes through WidgetState (file-backed, cross-process).
+final class SharedDefaultsShim {
+    static let shared = SharedDefaultsShim()
+    private init() {}
+
+    func string(forKey key: String) -> String? { WidgetState.string(forKey: key) }
+    func bool(forKey key: String) -> Bool       { WidgetState.bool(forKey: key) }
+    func object(forKey key: String) -> Any?     { WidgetState.date(forKey: key) }
+
+    func set(_ value: Any?, forKey key: String) {
+        switch value {
+        case let s as String:
+            WidgetState.set(s, forKey: key)
+        case let b as Bool:
+            WidgetState.set(b, forKey: key)
+        case let d as Date:
+            WidgetState.set(d, forKey: key)
+        case nil:
+            if key == DefaultsKey.committedQuery { WidgetState.set(nil as String?, forKey: key) }
+        default:
+            break
+        }
+    }
+}
+
+var sharedDefaults: SharedDefaultsShim { .shared }
 
 // MARK: - UserDefaults keys
 
@@ -44,10 +158,10 @@ struct UsageEntry: Codable {
 
 struct PeriodUsage: Codable {
     var percent: Double        // 0.0 … 1.0
-    var resetAt: Date
+    var resetAt: Date?         // nil when sourced from usage.txt (no reset epoch available)
     var hasData: Bool
 
-    static let empty = PeriodUsage(percent: 0, resetAt: .distantFuture, hasData: false)
+    static let empty = PeriodUsage(percent: 0, resetAt: nil, hasData: false)
 }
 
 // MARK: - ContextUsage

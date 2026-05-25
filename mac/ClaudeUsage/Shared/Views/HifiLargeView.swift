@@ -11,8 +11,11 @@ struct HifiLargeView: View {
 
     var entry: UsageEntry
 
-    /// Local query — updated per keystroke. Seeded from persisted committed query.
-    @State private var queryDraft: String = sharedDefaults.string(forKey: DefaultsKey.committedQuery) ?? ""
+    /// Committed query read from ~/.claude/widget-state.json at timeline build time.
+    /// Updated only from the host app; never mutated inside the widget.
+    private var committedQuery: String {
+        sharedDefaults.string(forKey: DefaultsKey.committedQuery) ?? ""
+    }
 
     private var isCollapsed: Bool {
         sharedDefaults.bool(forKey: DefaultsKey.agentsCollapsed)
@@ -80,10 +83,10 @@ struct HifiLargeView: View {
                 MeterRow(
                     label: "Context window",
                     percent: contextPercent,
-                    hasData: !entry.context.isStale && entry.context.usedTokens != nil,
+                    hasData: entry.context.usedTokens != nil,
                     barHeight: 4,
                     isContext: true,
-                    contextUsed: entry.context.isStale ? nil : entry.context.usedTokens,
+                    contextUsed: entry.context.usedTokens,
                     contextTotal: entry.context.totalTokens,
                     permissionDenied: entry.dataState.permissionsDenied
                 )
@@ -104,7 +107,7 @@ struct HifiLargeView: View {
                 headerFontSize: 11,
                 v4CapPerCategory: true,
                 isCollapsed: isCollapsed,
-                queryDraft: $queryDraft
+                committedQuery: committedQuery
             )
             .padding(.horizontal, 14)
 
@@ -133,7 +136,7 @@ struct HifiLargeView: View {
     // MARK: - Helpers
 
     private var contextPercent: Double? {
-        guard let used = entry.context.usedTokens, !entry.context.isStale else { return nil }
+        guard let used = entry.context.usedTokens else { return nil }
         return Double(used) / Double(entry.context.totalTokens)
     }
 }

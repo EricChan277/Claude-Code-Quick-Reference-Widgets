@@ -6,7 +6,7 @@ import WidgetKit
 
 struct PreferencesView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("refreshInterval", store: sharedDefaults) private var refreshInterval: Int = 60
+    @AppStorage("refreshInterval") private var refreshInterval: Int = 60
 
     private var accent: Color {
         colorScheme == .dark ? Color(hex: "#FF8A3D") : Color(hex: "#D97557")

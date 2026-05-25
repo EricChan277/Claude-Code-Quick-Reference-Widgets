@@ -29,7 +29,11 @@ actor AgentScanner {
             let agents = urls.compactMap { url -> AgentInfo? in
                 let slug = url.deletingPathExtension().lastPathComponent
                 guard !slug.isEmpty else { return nil }
-                let category = categoryFromFile(at: url) ?? AgentCategory.defaultCategory(for: slug)
+                // categoryFromFile returns nil when frontmatter is absent or the
+                // category string is unrecognized; defaultCategory always returns
+                // a valid case (falling back to .other), so agents are never dropped.
+                let category = categoryFromFile(at: url)
+                    ?? AgentCategory.defaultCategory(for: slug)
                 return AgentInfo(slug: slug, category: category)
             }.sorted { $0.slug < $1.slug }
 
@@ -46,7 +50,7 @@ actor AgentScanner {
     // MARK: - Private helpers
 
     private func agentsDirectory() -> URL {
-        FileManager.default.homeDirectoryForCurrentUser
+        Paths.realHome
             .appendingPathComponent(".claude/agents")
     }
 
@@ -72,9 +76,38 @@ actor AgentScanner {
                     .dropFirst("category:".count)
                     .trimmingCharacters(in: .init(charactersIn: " \t\"'"))
                     .uppercased()
-                // Try to match by rawValue (case-insensitive)
-                return AgentCategory.allCases.first {
+                // Try rawValue and shortLabel (both case-insensitive)
+                if let match = AgentCategory.allCases.first(where: {
                     $0.rawValue.uppercased() == value || $0.shortLabel.uppercased() == value
+                }) {
+                    return match
+                }
+                // Map common VoltAgent/awesome-claude-code-subagents category strings
+                // that don't exactly match rawValues or short labels.
+                switch value {
+                case "AI & ML", "AI/ML", "AI AND ML", "ARTIFICIAL INTELLIGENCE", "ML":
+                    return .aiML
+                case "FRONTEND", "FRONTEND & UI", "FRONTEND AND UI", "UI", "FRONTEND/UI":
+                    return .frontendUI
+                case "BACKEND", "BACKEND & API", "BACKEND AND API", "API", "BACKEND/API":
+                    return .backendAPI
+                case "MOBILE", "MOBILE & DESKTOP", "MOBILE AND DESKTOP", "DESKTOP", "MOBILE/DESKTOP":
+                    return .mobileDesktop
+                case "LANGUAGE", "LANGUAGES":
+                    return .languages
+                case "QUALITY", "QUALITY & SECURITY", "QUALITY AND SECURITY", "SECURITY", "QA",
+                     "QUALITY/SECURITY":
+                    return .qualitySecurity
+                case "OPS", "OPS & PERFORMANCE", "OPS AND PERFORMANCE", "DEVOPS", "INFRASTRUCTURE",
+                     "PERFORMANCE", "OPS/PERFORMANCE":
+                    return .opsPerformance
+                case "COORD", "COORDINATION", "COORDINATION & PM", "COORDINATION AND PM",
+                     "ORCHESTRATION", "PM", "COORDINATION/PM":
+                    return .coordinationPM
+                default:
+                    // Frontmatter category present but unrecognized — return nil so
+                    // the caller falls through to defaultCategory(for: slug) or .other.
+                    return nil
                 }
             }
         }

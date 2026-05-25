@@ -19,8 +19,9 @@ struct AgentsExplorerView: View {
     var v4CapPerCategory: Bool = true  // V4 caps at 2 + "+N more"
     var isCollapsed: Bool = false      // V4 only
 
-    /// Local query draft — updated per keystroke. Never triggers an intent by itself.
-    @Binding var queryDraft: String
+    /// The persisted committed query. Read-only inside the widget; updated
+    /// only from the host app via claudeusage://search deep-link.
+    var committedQuery: String
 
     // MARK: - Body
 
@@ -58,10 +59,10 @@ struct AgentsExplorerView: View {
 
             Spacer(minLength: 0)
 
-            // Search input (hidden when collapsed)
+            // Search affordance (hidden when collapsed)
             if !isCollapsed {
                 SearchInputView(
-                    query: $queryDraft,
+                    committedQuery: committedQuery,
                     placeholder: columnCount >= 4 ? "search agents…" : "search…"
                 )
             }
@@ -72,7 +73,7 @@ struct AgentsExplorerView: View {
 
     private var headerCountText: String {
         let total = agents.count
-        let q = queryDraft.trimmingCharacters(in: .whitespaces)
+        let q = committedQuery.trimmingCharacters(in: .whitespaces)
         if q.isEmpty {
             return "\(headerLabel) (\(total))"
         } else {
@@ -88,7 +89,7 @@ struct AgentsExplorerView: View {
         if agents.isEmpty {
             agentsEmptyState
         } else {
-            let q = queryDraft.trimmingCharacters(in: .whitespaces)
+            let q = committedQuery.trimmingCharacters(in: .whitespaces)
             if q.isEmpty {
                 categoricalView
             } else {
@@ -120,7 +121,7 @@ struct AgentsExplorerView: View {
                                 useShortLabel: columnCount < 4,
                                 capAt: v4CapPerCategory ? 2 : Int.max,
                                 fontSize: agentFontSize,
-                                queryDraft: queryDraft
+                                committedQuery: committedQuery
                             )
                         }
                     }
@@ -189,7 +190,7 @@ struct CategoryBlock: View {
     var useShortLabel: Bool = true
     var capAt: Int = 2
     var fontSize: CGFloat = 9.5
-    var queryDraft: String = ""
+    var committedQuery: String = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
@@ -209,7 +210,7 @@ struct CategoryBlock: View {
                 AgentItemView(
                     agent: agent,
                     fontSize: fontSize,
-                    searchQuery: queryDraft
+                    searchQuery: committedQuery
                 )
             }
 
@@ -224,4 +225,3 @@ struct CategoryBlock: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-

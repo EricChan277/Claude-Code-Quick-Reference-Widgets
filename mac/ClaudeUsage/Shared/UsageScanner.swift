@@ -1,7 +1,9 @@
 // UsageScanner.swift
-// Reads ~/.claude/projects/**/*.jsonl, tallies token counts within
-// the 5-hour session window and 7-day weekly window.
-// Also reads ~/.claude/context.json for the context-window IPC.
+// Reads ~/.claude/usage.txt — a KEY=VALUE snapshot written by the Claude Code
+// statusline script on every tick. Pre-computed percentages are used directly;
+// no local token tallying is performed.
+// Also reads ~/.claude/context.json for the context-window IPC (fallback when
+// usage.txt does not supply CONTEXT_USED/CONTEXT_TOTAL).
 // Spec § Data sources
 
 import Foundation
@@ -20,157 +22,114 @@ actor UsageScanner {
         sparkline: [Int],
         permissionDenied: Bool
     ) {
-        let projectsDir = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".claude/projects")
+        let usageTxtURL = Paths.realHome
+            .appendingPathComponent(".claude/usage.txt")
 
-        var entries: [(timestamp: Date, tokens: Int, model: String)] = []
-        var permissionDenied = false
+        // Parse usage.txt into a [String: String] dictionary.
+        let kv = parseKeyValue(at: usageTxtURL)
 
-        do {
-            entries = try await readAllJSONL(in: projectsDir)
-        } catch let err as NSError {
-            if err.domain == NSCocoaErrorDomain && err.code == NSFileReadNoPermissionError {
-                permissionDenied = true
-            }
+        // Determine freshness: if the file is missing or older than 5 minutes,
+        // treat all rate-limit fields as absent.
+        let fileAge: TimeInterval
+        if let epoch = kv["UPDATED_EPOCH"].flatMap({ Double($0) }) {
+            fileAge = Date.now.timeIntervalSince1970 - epoch
+        } else if let attrs = try? FileManager.default.attributesOfItem(atPath: usageTxtURL.path),
+                  let mod = attrs[.modificationDate] as? Date {
+            fileAge = Date.now.timeIntervalSince(mod)
+        } else {
+            fileAge = .greatestFiniteMagnitude   // file absent → stale
         }
 
-        let now = Date.now
-        let sessionCutoff = now.addingTimeInterval(-5 * 3600)
-        let weeklyCutoff  = now.addingTimeInterval(-7 * 24 * 3600)
+        let isStale = fileAge > 300   // 5-minute threshold
 
-        // Session: messages within the last 5 hours
-        let sessionEntries = entries.filter { $0.timestamp >= sessionCutoff }
-        // Session resets 5h after the *first* message of the current session
-        let sessionStart   = sessionEntries.min(by: { $0.timestamp < $1.timestamp })?.timestamp
-        let sessionResetAt = sessionStart.map { $0.addingTimeInterval(5 * 3600) } ?? now.addingTimeInterval(5 * 3600)
+        // Model: use value directly — statusline already emits a friendly name.
+        let model: String = kv["MODEL"] ?? "Claude"
 
-        // Weekly: messages within the rolling 7-day window
-        let weeklyEntries = entries.filter { $0.timestamp >= weeklyCutoff }
-        let weeklyStart   = weeklyEntries.min(by: { $0.timestamp < $1.timestamp })?.timestamp
-        let weeklyResetAt = weeklyStart.map { $0.addingTimeInterval(7 * 24 * 3600) } ?? now.addingTimeInterval(7 * 24 * 3600)
+        // Session percentage (FIVEH_PCT: 0-100 from Claude Code).
+        let sessionPct: Double?
+        let sessionHasData: Bool
+        if !isStale, let raw = kv["FIVEH_PCT"], let parsed = Double(raw) {
+            sessionPct = min(max(parsed / 100.0, 0.0), 1.0)
+            sessionHasData = true
+        } else {
+            sessionPct = nil
+            sessionHasData = false
+        }
 
-        // Token totals (use output_tokens as the primary usage signal)
-        let sessionTokens = sessionEntries.reduce(0) { $0 + $1.tokens }
-        let weeklyTokens  = weeklyEntries.reduce(0) { $0 + $1.tokens }
+        // Weekly percentage (WEEK_ALL_PCT: 0-100 from Claude Code).
+        let weeklyPct: Double?
+        let weeklyHasData: Bool
+        if !isStale, let raw = kv["WEEK_ALL_PCT"], let parsed = Double(raw) {
+            weeklyPct = min(max(parsed / 100.0, 0.0), 1.0)
+            weeklyHasData = true
+        } else {
+            weeklyPct = nil
+            weeklyHasData = false
+        }
 
-        // Known limits (approximate; the spec doesn't mandate exact caps).
-        // 5h session ≈ 88k tokens (based on community observations).
-        // 7d weekly: not publicly documented — use 500k as a reasonable cap.
-        let sessionLimit = 88_000.0
-        let weeklyLimit  = 500_000.0
+        // Context: prefer usage.txt fields; fall back to context.json.
+        let context: ContextUsage
+        if !isStale,
+           let usedStr  = kv["CONTEXT_USED"],
+           let totalStr = kv["CONTEXT_TOTAL"],
+           let used     = Int(usedStr),
+           let total    = Int(totalStr) {
+            context = ContextUsage(usedTokens: used, totalTokens: total, isStale: false)
+        } else {
+            context = await readContext()
+        }
 
-        let sessionPct = min(Double(sessionTokens) / sessionLimit, 1.0)
-        let weeklyPct  = min(Double(weeklyTokens)  / weeklyLimit,  1.0)
-
-        let latestModel = entries.sorted { $0.timestamp > $1.timestamp }.first?.model ?? "Sonnet 4.6"
-
-        let sparkline = buildSparkline(from: entries, now: now)
-
-        let context = await readContext()
+        // lastRefreshedAt from UPDATED_EPOCH (used by the header "updated N ago" label).
+        // The scanner return tuple doesn't include lastRefreshedAt directly; TimelineProvider
+        // sets UsageEntry.lastRefreshedAt from Date.now after the scan, which is fine.
 
         return (
             session: PeriodUsage(
-                percent: sessionPct,
-                resetAt: sessionResetAt,
-                hasData: !sessionEntries.isEmpty
+                percent: sessionPct ?? 0,
+                resetAt: nil,
+                hasData: sessionHasData
             ),
             weekly: PeriodUsage(
-                percent: weeklyPct,
-                resetAt: weeklyResetAt,
-                hasData: !weeklyEntries.isEmpty
+                percent: weeklyPct ?? 0,
+                resetAt: nil,
+                hasData: weeklyHasData
             ),
             context: context,
-            model: latestModel,
-            sparkline: sparkline,
-            permissionDenied: permissionDenied
+            model: model,
+            sparkline: Array(repeating: 0, count: 24),
+            permissionDenied: false
         )
     }
 
-    // MARK: - JSONL reading
+    // MARK: - usage.txt parser
 
-    private func readAllJSONL(
-        in dir: URL
-    ) async throws -> [(timestamp: Date, tokens: Int, model: String)] {
-        var results: [(timestamp: Date, tokens: Int, model: String)] = []
-        let fm = FileManager.default
-
-        guard fm.fileExists(atPath: dir.path) else { return results }
-
-        let enumerator = fm.enumerator(
-            at: dir,
-            includingPropertiesForKeys: [.isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        )
-
-        while let url = enumerator?.nextObject() as? URL {
-            guard url.pathExtension == "jsonl" else { continue }
-            let fileEntries = try parseJSONL(at: url)
-            results.append(contentsOf: fileEntries)
-        }
-
-        return results
-    }
-
-    private func parseJSONL(
-        at url: URL
-    ) throws -> [(timestamp: Date, tokens: Int, model: String)] {
-        let raw = try String(contentsOf: url, encoding: .utf8)
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let iso2 = ISO8601DateFormatter() // without fractional seconds
-        iso2.formatOptions = [.withInternetDateTime]
-
-        return raw.components(separatedBy: .newlines).compactMap { line -> (Date, Int, String)? in
+    /// Reads a KEY=VALUE text file and returns a dictionary.
+    /// Splits only on the first `=` so values may contain `=`.
+    private func parseKeyValue(at url: URL) -> [String: String] {
+        guard let raw = try? String(contentsOf: url, encoding: .utf8) else { return [:] }
+        var result: [String: String] = [:]
+        for line in raw.components(separatedBy: .newlines) {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            guard !trimmed.isEmpty,
-                  let data = trimmed.data(using: .utf8),
-                  let obj  = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-            else { return nil }
-
-            // Timestamp field
-            guard let tsString = obj["timestamp"] as? String,
-                  let date = iso.date(from: tsString) ?? iso2.date(from: tsString)
-            else { return nil }
-
-            // Tokens: prefer output_tokens, fall back to usage dict
-            let tokens: Int
-            if let usage = obj["usage"] as? [String: Any],
-               let out = usage["output_tokens"] as? Int {
-                tokens = out
-            } else if let out = obj["output_tokens"] as? Int {
-                tokens = out
-            } else {
-                tokens = 0
-            }
-
-            let model = (obj["model"] as? String) ?? "unknown"
-            return (date, tokens, model)
+            guard !trimmed.isEmpty, let eqRange = trimmed.range(of: "=") else { continue }
+            let key   = String(trimmed[..<eqRange.lowerBound])
+                .trimmingCharacters(in: .whitespaces)
+            let value = String(trimmed[eqRange.upperBound...])
+                .trimmingCharacters(in: .whitespaces)
+            guard !key.isEmpty else { continue }
+            result[key] = value
         }
-    }
-
-    // MARK: - Sparkline (24 hourly buckets)
-
-    private func buildSparkline(
-        from entries: [(timestamp: Date, tokens: Int, model: String)],
-        now: Date
-    ) -> [Int] {
-        var buckets = Array(repeating: 0, count: 24)
-        let cutoff = now.addingTimeInterval(-24 * 3600)
-        for entry in entries where entry.timestamp >= cutoff {
-            let hoursAgo = Int(now.timeIntervalSince(entry.timestamp) / 3600)
-            let idx = min(max(23 - hoursAgo, 0), 23)
-            buckets[idx] += entry.tokens
-        }
-        // Convert to tokens-per-minute (approximate rate for display)
-        return buckets.map { $0 / 60 }
+        return result
     }
 
     // MARK: - Context window IPC
 
-    /// Reads ~/.claude/context.json and evaluates staleness (120s threshold).
+    /// Reads ~/.claude/context.json and evaluates staleness (24h threshold).
+    /// context.json is only written during an active conversation, so outside
+    /// of one it is always "stale" — we still return the last known values and
+    /// mark isStale=true so views can dim rather than blank them.
     /// Spec § Data sources → Context window.
     func readContext() async -> ContextUsage {
-        let url = FileManager.default.homeDirectoryForCurrentUser
+        let url = Paths.realHome
             .appendingPathComponent(".claude/context.json")
 
         guard let data = try? Data(contentsOf: url),
@@ -183,7 +142,10 @@ actor UsageScanner {
         let usedTokens  = obj["used_tokens"]  as? Int
         let totalTokens = (obj["total_tokens"] as? Int) ?? 200_000
 
-        // Staleness check: written_at > 120s ago → stale
+        // Staleness check: written_at > 24h ago → stale.
+        // context.json is only written during an active conversation; outside
+        // of one, the file is always old. We still surface the last-known token
+        // values with isStale=true so views can dim them rather than show "—".
         var isStale = true
         if let writtenAtStr = obj["written_at"] as? String {
             let iso = ISO8601DateFormatter()
@@ -191,12 +153,15 @@ actor UsageScanner {
             let iso2 = ISO8601DateFormatter()
             iso2.formatOptions = [.withInternetDateTime]
             if let writtenAt = iso.date(from: writtenAtStr) ?? iso2.date(from: writtenAtStr) {
-                isStale = Date.now.timeIntervalSince(writtenAt) > 120
+                isStale = Date.now.timeIntervalSince(writtenAt) > 86_400
             }
         }
 
+        // Always return the last-known token values regardless of staleness.
+        // Callers use isStale to dim the display; nil usedTokens means no data
+        // ever, not that the file is old.
         return ContextUsage(
-            usedTokens: isStale ? nil : usedTokens,
+            usedTokens: usedTokens,
             totalTokens: totalTokens,
             isStale: isStale
         )

@@ -16,11 +16,31 @@ Two sizes: **V4 systemLarge** (338×338) and **V6 systemExtraLarge** (688×338).
 
 ## Open and build
 
+### Command-line (no Xcode GUI required)
+
+The project uses ad-hoc signing (`-` identity, no developer team required). Run from the repo root:
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  xcodebuild -project mac/ClaudeUsage/ClaudeUsage.xcodeproj \
+             -scheme ClaudeUsage -configuration Debug \
+             -destination 'platform=macOS' build
+```
+
+After a successful build, register the app so macOS recognises the widget extension:
+
+```bash
+APP=$(ls -d ~/Library/Developer/Xcode/DerivedData/ClaudeUsage-*/Build/Products/Debug/ClaudeUsage.app | head -1)
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f "$APP"
+# Confirm the widget is visible to WidgetKit:
+pluginkit -m -p com.apple.widgetkit-extension | grep -i claude
+```
+
+### Xcode GUI
+
 1. Open `mac/ClaudeUsage/ClaudeUsage.xcodeproj` in Xcode 15+.
 2. Select the **ClaudeUsage** scheme and your Mac as the run destination.
-3. Set your development team in both targets:
-   - Select the project in the navigator, choose the **ClaudeUsage** target, open Signing & Capabilities, and pick your Team.
-   - Repeat for the **ClaudeUsageWidgetExtension** target.
+3. No team configuration is needed — both targets are set to ad-hoc signing.
 4. Build and run (`Cmd+R`). The host app window opens.
 
 The host app is intentionally minimal. Its main job is to hold the widget extension and provide a Rescan button. The widget itself lives in Notification Center.
@@ -40,51 +60,40 @@ The host app is intentionally minimal. Its main job is to hold the widget extens
 
 The widget reads three local paths. No network calls are made.
 
-| Path | What it contains |
-|---|---|
-| `~/.claude/projects/**/*.jsonl` | Claude Code conversation history (token counts, timestamps, model name) |
-| `~/.claude/agents/*.md` | Installed sub-agents (one `.md` file per agent slug) |
-| `~/.claude/context.json` | Current context window usage (written by your statusline hook) |
+| Path | What it contains | Writer |
+|---|---|---|
+| `~/.claude/usage.txt` | KEY=VALUE snapshot: `FIVEH_PCT`, `WEEK_ALL_PCT`, `CONTEXT_USED`, `CONTEXT_TOTAL`, `MODEL`, `UPDATED_EPOCH` | `~/.claude/statusline.sh` (Claude Code statusline hook) |
+| `~/.claude/agents/*.md` | Installed sub-agents (one `.md` file per agent slug; optional `category:` front-matter) | You / `install-agents.sh` |
+| `~/.claude/context.json` | Fallback context-window source if `usage.txt` omits `CONTEXT_USED`/`CONTEXT_TOTAL` | Optional statusline hook |
 
-The widget polls all three paths every 60 seconds via `TimelineProvider`.
+The widget polls all three paths every 60 seconds via `TimelineProvider`. `usage.txt` is treated as stale if `UPDATED_EPOCH` is more than 5 minutes old; in that case the session/weekly/context meters show `—` silently rather than rendering a stale value.
+
+This is the same `usage.txt` contract used by the [Windows Rainmeter skin](../README.md) — install the statusline writer once and both widgets light up. Token tallying is no longer done locally; the statusline script is the single source of truth for rate-limit percentages.
 
 ### File access permissions
+
+The widget extension runs in App Sandbox without app-group entitlements (ad-hoc signing precludes them). It uses `getpwuid()` to resolve the real home directory (the sandbox container path that `FileManager.homeDirectoryForCurrentUser` returns inside an extension is not where `~/.claude/` lives), then reads `~/.claude/` directly through a user-granted security-scoped bookmark.
 
 If the widget shows "cannot read ~/.claude/", open the **Claude Usage** host app and click **Grant ~/.claude/ access** in Preferences. A file panel will open — navigate to your home directory's `.claude` folder and click Open. This grants the app sandbox the read permission it needs.
 
 ---
 
-## Wiring up context.json (statusline hook)
+## Wiring up the statusline hook
 
-The context window meter (`— / 200k tokens`) requires a writer. Claude Code exposes current context usage via its statusline hook system.
+The widget is a renderer; it does no math of its own. A statusline script must produce `~/.claude/usage.txt`. Claude Code already runs `~/.claude/statusline.sh` on every tick — extend it to emit the keys below (any subset works; missing keys just render as `—`):
 
-Add the snippet below to your Claude Code statusline configuration (wherever you currently run the statusline hook — `~/.zshrc`, a custom script sourced by Claude Code's hook, etc.):
-
-```sh
-#!/usr/bin/env bash
-# claude-context-writer.sh
-# Paste this into your Claude Code statusline hook.
-# It writes ~/.claude/context.json each time the statusline refreshes.
-
-CONTEXT_FILE="$HOME/.claude/context.json"
-
-# Adjust these variable names to match what your statusline script exposes.
-USED="${CLAUDE_CONTEXT_USED:-0}"
-TOTAL="${CLAUDE_CONTEXT_TOTAL:-200000}"
-MODEL="${CLAUDE_MODEL:-claude-sonnet-4-6}"
-
-cat > "$CONTEXT_FILE" <<EOF
-{
-  "schema": 1,
-  "used_tokens": $USED,
-  "total_tokens": $TOTAL,
-  "model": "$MODEL",
-  "written_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-}
-EOF
+```
+FIVEH_PCT=42
+WEEK_ALL_PCT=18
+CONTEXT_USED=78231
+CONTEXT_TOTAL=200000
+MODEL=Sonnet 4.6
+UPDATED_EPOCH=1748185600
 ```
 
-The widget treats the file as stale if `written_at` is more than 120 seconds old. A missing or stale file causes the context row to show `—` silently — no error state, by design — so users who have not installed the hook see a clean widget rather than an error.
+The Windows side of this repo ships a reference PowerShell implementation (`~/.claude/statusline.ps1` mentioned in the root `CLAUDE.md`) that emits the same keys — a Mac/bash port follows the same contract. If only some keys are present, the widget renders the rows it can and dashes the rest.
+
+If `CONTEXT_USED`/`CONTEXT_TOTAL` are not in `usage.txt`, the widget falls back to `~/.claude/context.json` (`{ "used_tokens": …, "total_tokens": …, "written_at": "ISO-8601" }`, stale after 120 s). Provide whichever is easier to wire into your hook.
 
 ---
 
@@ -134,23 +143,37 @@ Open the host app and press `Cmd+,` (or **ClaudeUsage > Settings**) to:
 
 ```
 TimelineProvider (60-second poll)
-  ├── UsageScanner  → ~/.claude/projects/**/*.jsonl  (session + weekly tokens, sparkline)
-  ├── AgentScanner  → ~/.claude/agents/*.md           (slug, category)
-  └── UsageScanner.readContext() → ~/.claude/context.json
+  ├── UsageScanner  → ~/.claude/usage.txt        (parses KEY=VALUE; 5-min stale check)
+  │                 → ~/.claude/context.json     (fallback for CONTEXT_USED/TOTAL)
+  └── AgentScanner  → ~/.claude/agents/*.md      (slug, category from YAML front-matter)
+
+Paths.realHome   → getpwuid()-resolved $HOME (bypasses extension sandbox redirection)
 
 AppIntents (interactive widget actions, macOS 14+ only)
-  ├── CopyAgentIntent           – writes "@slug" to NSPasteboard
-  ├── SetSearchQueryIntent      – persists debounced query to app-group UserDefaults
-  └── ToggleAgentsCollapseIntent – toggles the V4 agents panel
+  ├── CopyAgentIntent             – writes "@slug" to NSPasteboard, records lastCopied{Slug,At}
+  ├── ClearSearchIntent           – clears committedQuery and reloads timelines
+  ├── ToggleAgentsCollapseIntent  – toggles V4 agents panel collapse state
+  └── SetSearchQueryIntent        – kept as a named type for stored-intent compatibility;
+                                    only invoked from the host app, never from the widget
 
-Shared UserDefaults  (app group: group.dev.claudewidget)
-  ├── committedQuery    – last debounced search string (survives 60s reloads)
+Host app (claudeusage:// URL handler)
+  ├── claudeusage://search  →  SearchSheetView (real NSTextField; commits query on Enter/Done)
+  └── claudeusage://grant   →  Settings → file-access bookmark panel
+
+WidgetState  →  ~/.claude/widget-state.json   (JSON file, shared by host app + extension)
+  ├── committedQuery    – last committed search string
   ├── agentsCollapsed   – V4 collapse/expand state
   ├── lastCopiedSlug    – for the 1.4-second "copied" affordance
   └── lastCopiedAt      – timestamp for auto-revert
 ```
 
-Search is local-only per keystroke (`@State var queryDraft` in the view). The `SetSearchQueryIntent` fires only after a 250 ms typing pause to avoid WidgetKit rate-limit issues. Between keystrokes and the committed reload, the matched/total header count may lag by up to 250 ms — this is intentional. See the design spec at `../claude-usage-widget-review/design_handoff_mac_widget/README.md` § Interactions → Search for full rationale.
+### Why a JSON file instead of an app group
+
+`UserDefaults(suiteName: "group.dev.claudewidget")` silently falls back to `.standard` under ad-hoc signing (the app-group entitlement requires a real Apple Developer team). That would split state between the host process and the extension process. `~/.claude/widget-state.json` sidesteps the entitlement entirely — both processes can read/write through normal sandbox file access, and the data lives next to the existing `usage.txt` the user already trusts.
+
+### Why the search sheet lives in the host app
+
+WidgetKit forbids `TextField` inside widget views on macOS 14+, so the spec's in-widget search bar was relocated. Tapping the search affordance fires a `Link(destination: URL(string: "claudeusage://search"))`, which opens the host app and presents `SearchSheetView` as a real native sheet. Committing a query writes `committedQuery` to `widget-state.json` and calls `WidgetCenter.shared.reloadTimelines(ofKind: "ClaudeUsage")`; the widget re-renders with the filter applied on the next timeline build. Clearing the query stays in-widget via `ClearSearchIntent` (no host app round-trip).
 
 ---
 
@@ -158,9 +181,12 @@ Search is local-only per keystroke (`@State var queryDraft` in the view). The `S
 
 | Symptom | Fix |
 |---|---|
-| Widget shows only dashes everywhere | Grant `~/.claude/` read access via host app Preferences |
-| Context row always shows `—` | Install the statusline hook; verify `~/.claude/context.json` exists and is being updated |
-| Agents section empty | Run `install-agents.sh` or place `.md` files in `~/.claude/agents/` |
-| Widget does not update | Click Rescan in the host app, or wait for the 60-second poll |
-| Build error: no development team | Set your Apple ID team in Xcode Signing & Capabilities for both targets |
-| Widget not visible in Notification Center | Quit and relaunch the host app, then re-add from Edit Widgets |
+| Widget shows only dashes everywhere | Grant `~/.claude/` read access via host app Preferences, **or** verify `~/.claude/usage.txt` exists and `UPDATED_EPOCH` is fresh (under 5 minutes old). |
+| Session/weekly rows show `—` | `usage.txt` is missing the `FIVEH_PCT` / `WEEK_ALL_PCT` keys, or `UPDATED_EPOCH` is stale. Check your statusline script. |
+| Context row always shows `—` | Either add `CONTEXT_USED` and `CONTEXT_TOTAL` to `usage.txt`, or write `~/.claude/context.json` (stale after 120 s). |
+| Agents section empty | Run `install-agents.sh` or place `.md` files in `~/.claude/agents/`. |
+| Search button does nothing | The `claudeusage://` URL scheme isn't registered — quit the host app, run it once with `open ~/Applications/ClaudeUsage_test.app`, then retry. `lsregister -f` (see build instructions) usually fixes this. |
+| Widget does not update | Click Rescan in the host app, or wait for the 60-second poll. |
+| App icon shows as a generic placeholder in the Dock | Old build was copied before `Assets.xcassets` was added. Clean build (`Cmd+Shift+K`), rebuild, replace the `.app` in `~/Applications/`, then `killall Dock`. |
+| Build error: no development team | Not required — the project uses ad-hoc (`-`) signing. No Apple Developer account needed. |
+| Widget not visible in Notification Center | Quit and relaunch the host app, then re-add from Edit Widgets. |
