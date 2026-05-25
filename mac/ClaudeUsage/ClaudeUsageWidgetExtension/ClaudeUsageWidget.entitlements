@@ -2,18 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App group for shared UserDefaults between host app and widget extension -->
-    <key>com.apple.security.application-groups</key>
-    <array>
-        <string>group.dev.claudewidget</string>
-    </array>
-    <!-- Sandbox must be enabled; file access via user's home dir requires user-selected-files
-         or the com.apple.security.temporary-exception.files.home-relative-path.read-only
-         entitlement for direct ~/.claude/ reading. -->
     <key>com.apple.security.app-sandbox</key>
     <true/>
-    <!-- Read-only access to the user's home directory files written by the statusline hook -->
     <key>com.apple.security.temporary-exception.files.home-relative-path.read-only</key>
+    <array>
+        <string>/.claude/</string>
+    </array>
+    <key>com.apple.security.temporary-exception.files.home-relative-path.read-write</key>
     <array>
         <string>/.claude/</string>
     </array>

@@ -70,10 +70,9 @@ struct AgentItemView: View {
                 .foregroundStyle(theme.accent)
                 .symbolRenderingMode(.monochrome)
 
-            Text("copied ")
-                .font(.system(size: fontSize, weight: .bold))
-                .foregroundStyle(theme.accent)
-
+            // Omit the literal " copied " word so the @slug stays readable
+            // in narrow V6 columns — shows "✓ @swift-expert" instead of
+            // "✓ co... @swi..." when the column clips mid-affordance.
             Text("@\(agent.slug)")
                 .font(.system(size: fontSize, weight: .bold).monospaced())
                 .foregroundStyle(theme.accent)
@@ -93,28 +92,23 @@ struct AgentItemView: View {
 
     // MARK: - Search highlight
 
-    @ViewBuilder
     private func highlightedText(full: String, query: String, fontSize: CGFloat) -> some View {
-        let lower = full.lowercased()
-        let q = query.lowercased().trimmingCharacters(in: .whitespaces)
-        if let range = lower.range(of: q) {
-            let before  = String(full[full.startIndex..<range.lowerBound])
-            let match   = String(full[range])
-            let after   = String(full[range.upperBound...])
-
-            (Text(before).font(.system(size: fontSize)).foregroundStyle(theme.fg)
-             + Text(match)
-                .font(.system(size: fontSize))
-                .foregroundStyle(theme.fg)
-                .background(theme.searchHighlight)
-                .padding(.horizontal, 1)
-             + Text(after).font(.system(size: fontSize)).foregroundStyle(theme.fg))
+        Text(buildHighlighted(full: full, query: query))
+            .font(.system(size: fontSize))
+            .foregroundStyle(theme.fg)
             .lineLimit(1)
-        } else {
-            Text(full)
-                .font(.system(size: fontSize))
-                .foregroundStyle(theme.fg)
+    }
+
+    private func buildHighlighted(full: String, query: String) -> AttributedString {
+        var attr = AttributedString(full)
+        let q = query.lowercased().trimmingCharacters(in: .whitespaces)
+        guard !q.isEmpty,
+              let range = full.lowercased().range(of: q),
+              let attrRange = Range(range, in: attr) else {
+            return attr
         }
+        attr[attrRange].backgroundColor = theme.searchHighlight
+        return attr
     }
 }
 

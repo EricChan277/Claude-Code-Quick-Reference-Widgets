@@ -18,7 +18,8 @@ the installed Rainmeter skin. Consequences:
   `Skins\ClaudeUsage\ClaudeUsage.ini` and will break if they move into a subfolder.
 - Editing the root files edits the live widget. After changing `ClaudeUsage.ini` or
   `usage.lua`, refresh the skin to see changes (right-click the widget → Refresh, or refresh
-  via the Rainmeter Manager). There is no build/compile step for the skin itself.
+  via the Rainmeter Manager). There is no build/compile step, test suite, or linter for the
+  skin itself — verification is visual, in Rainmeter.
 - `@Resources/usage.txt` and `@Resources/agents.txt` are runtime-generated and gitignored.
   Both are written by `~/.claude/statusline.ps1` on every tick — do not commit or hand-edit
   them as source. Any direct write to `agents.txt` will be overwritten within seconds.
@@ -64,7 +65,7 @@ ClaudeUsage.ini  meters
 Two paths, both in `windows/`. Both source the skin **from the repo root** (not a copy) and
 exclude runtime files (`usage.txt`, `agents.txt`):
 
-- **`install.ps1`** (launched by `install.bat`) — installs directly from a clone. Reads
+- **`install.ps1`** (launched by double-clicking `install.bat`) — installs directly from a clone. Reads
   `SkinPath` from `%APPDATA%\Rainmeter\Rainmeter.ini` (falls back to `Documents\Rainmeter\Skins`),
   copies `ClaudeUsage.ini` + `@Resources\usage.lua` into `<SkinPath>\ClaudeUsage\`, then loads
   the skin via `Rainmeter.exe !ActivateConfig` / `!Refresh`. If source and destination resolve
@@ -90,4 +91,18 @@ exclude runtime files (`usage.txt`, `agents.txt`):
 - `windows/`: platform tooling — `build-rmskin.ps1`, `install-agents.sh` (interactive Bash
   installer that populates `agents.txt` from VoltAgent/awesome-claude-code-subagents),
   `ARCHITECTURE.md` (deeper technical reference), `screenshots/`.
-- `mac/`: placeholder for the planned macOS widget.
+- `mac/`: SwiftUI/WidgetKit port — a host app (`ClaudeUsage.app`) plus a
+  `ClaudeUsageWidgetExtension` providing two sizes (V4 `.systemLarge`, V6 `.systemExtraLarge`).
+  Start with `mac/README.md`. **Shares the Windows skin's data contract**: both read the same
+  `~/.claude/usage.txt` written by the Claude Code statusline (PS1 on Windows, `statusline.sh`
+  on Mac) — keep the KEY=VALUE schema stable when changing either side. The Mac widget does
+  no local token math; it just renders the percentages the statusline emits.
+- Mac-specific quirks worth remembering: (1) ad-hoc signing precludes app-group entitlements,
+  so cross-process state lives in `~/.claude/widget-state.json`, not `UserDefaults(suiteName:)`;
+  (2) the widget extension's sandbox redirects `$HOME` — use `Paths.realHome` (getpwuid-based)
+  to read `~/.claude/`; (3) `TextField` is banned in WidgetKit views, so search is handled by
+  a host-app sheet opened via the `claudeusage://search` Link.
+- A detailed design handoff (V4/V6 WidgetKit spec, dual-theme tokens, JSX references,
+  screenshots) lives at `claude-usage-widget-review/design_handoff_mac_widget/` if extracted —
+  consult it for visual/spec questions, but the implementation has diverged in places
+  (notably the search flow and data source), so the code is authoritative when they conflict.

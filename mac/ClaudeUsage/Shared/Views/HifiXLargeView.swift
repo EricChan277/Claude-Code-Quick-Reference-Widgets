@@ -11,7 +11,10 @@ struct HifiXLargeView: View {
 
     var entry: UsageEntry
 
-    @State private var queryDraft: String = sharedDefaults.string(forKey: DefaultsKey.committedQuery) ?? ""
+    /// Committed query read from ~/.claude/widget-state.json at timeline build time.
+    private var committedQuery: String {
+        sharedDefaults.string(forKey: DefaultsKey.committedQuery) ?? ""
+    }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -87,15 +90,21 @@ struct HifiXLargeView: View {
                         .foregroundStyle(theme.fgDim)
                         .textCase(.uppercase)
 
-                    let interval = max(entry.session.resetAt.timeIntervalSince(.now), 0)
-                    Text(interval.compactDuration)
-                        .font(.system(size: 18, weight: .bold).monospacedDigit())
-                        .kerning(-0.5)
-                        .foregroundStyle(theme.fg)
+                    if let resetAt = entry.session.resetAt {
+                        let interval = max(resetAt.timeIntervalSince(.now), 0)
+                        Text(interval.compactDuration)
+                            .font(.system(size: 18, weight: .bold).monospacedDigit())
+                            .kerning(-0.5)
+                            .foregroundStyle(theme.fg)
 
-                    Text("resets \(entry.session.resetAt.resetTimeString)")
-                        .font(.system(size: 9))
-                        .foregroundStyle(theme.fgDim)
+                        Text("resets \(resetAt.resetTimeString)")
+                            .font(.system(size: 9))
+                            .foregroundStyle(theme.fgDim)
+                    } else {
+                        Text("from Claude Code")
+                            .font(.system(size: 9))
+                            .foregroundStyle(theme.fgDim)
+                    }
                 }
             }
             .padding(.horizontal, 14)
@@ -114,10 +123,10 @@ struct HifiXLargeView: View {
                 MeterRow(
                     label: "Context window",
                     percent: contextPercent,
-                    hasData: !entry.context.isStale && entry.context.usedTokens != nil,
+                    hasData: entry.context.usedTokens != nil,
                     barHeight: 5,
                     isContext: true,
-                    contextUsed: entry.context.isStale ? nil : entry.context.usedTokens,
+                    contextUsed: entry.context.usedTokens,
                     contextTotal: entry.context.totalTokens,
                     permissionDenied: entry.dataState.permissionsDenied
                 )
@@ -150,7 +159,7 @@ struct HifiXLargeView: View {
                 headerFontSize: 12,
                 v4CapPerCategory: false,
                 isCollapsed: false,
-                queryDraft: $queryDraft
+                committedQuery: committedQuery
             )
             .padding(.top, 10)
         }
@@ -189,7 +198,7 @@ struct HifiXLargeView: View {
     // MARK: - Helpers
 
     private var contextPercent: Double? {
-        guard let used = entry.context.usedTokens, !entry.context.isStale else { return nil }
+        guard let used = entry.context.usedTokens else { return nil }
         return Double(used) / Double(entry.context.totalTokens)
     }
 }

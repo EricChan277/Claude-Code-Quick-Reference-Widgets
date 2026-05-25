@@ -2,3 +2,5 @@
 @Resources/usage.txt
 @Resources/agents.txt
 windows/*.rmskin
+mac/ClaudeUsage/ClaudeUsage.xcodeproj/xcuserdata/
+mac/ClaudeUsage/ClaudeUsage.xcodeproj/project.xcworkspace/xcuserdata/

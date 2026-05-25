@@ -6,7 +6,7 @@ local file written by your Claude Code statusline script. There are no remote AP
 | Platform | Status | Technology |
 |---|---|---|
 | [Windows](windows/) | Available | Rainmeter skin |
-| [macOS](mac/) | Coming soon | — |
+| [macOS](mac/) | Available (beta) | SwiftUI / WidgetKit |
 
 ---
 
