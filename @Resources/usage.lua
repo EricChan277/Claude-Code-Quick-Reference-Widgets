@@ -70,8 +70,8 @@ function ToggleAgents()
     SKIN:Bang('!SetVariable', 'AgentsOpen', tostring(nv))
     SKIN:Bang('!WriteKeyValue', 'Variables', 'AgentsOpen', tostring(nv))
     SKIN:Bang('!UpdateMeterGroup', 'Agents')
+    SKIN:Bang('!UpdateMeterGroup', 'AgentsToggle')
     SKIN:Bang('!UpdateMeter', 'MeterBackground')
-    SKIN:Bang('!UpdateMeter', 'MeterAgentsHeader')
     SKIN:Bang('!Redraw')
 end
 
@@ -178,7 +178,7 @@ end
 function ApplySearch()
     loadAgents()
     SKIN:Bang('!UpdateMeterGroup', 'Agents')
-    SKIN:Bang('!UpdateMeter', 'MeterAgentsHeader')
+    SKIN:Bang('!UpdateMeterGroup', 'AgentsToggle')
     SKIN:Bang('!Redraw')
 end
 
