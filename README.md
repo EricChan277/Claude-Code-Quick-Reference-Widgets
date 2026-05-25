@@ -1,12 +1,14 @@
-# Claude Usage — Rainmeter Skin
+# Claude Usage: Rainmeter Skin
 
 A Rainmeter desktop widget for Windows that displays live Claude Code usage statistics
-directly on your desktop. All data is read from a local file written by your Claude Code
-statusline script — no remote API calls are made by the skin itself.
+on your desktop. All data is read from a local file written by your Claude Code
+statusline script. The skin itself makes no remote API calls.
 
 ---
 
-![Screenshot placeholder — replace with an actual screenshot of the widget](screenshot.png)
+| Expanded | Collapsed |
+|---|---|
+| ![Widget with agents panel open](screenshot-expanded.png) | ![Widget with agents panel closed](screenshot-collapsed.png) |
 
 ---
 
@@ -41,11 +43,11 @@ statusline script — no remote API calls are made by the skin itself.
 
 ## How it works
 
-Claude Code exposes a hook called a **statusline script**. Every time Claude Code renders
-its terminal statusline, it calls `~/.claude/statusline.ps1`. That script writes a flat
-`key=value` file to `@Resources/usage.txt` inside the skin folder. The Rainmeter skin
-reads that file every second via a Lua script, computes live countdowns from the stored
-Unix epoch timestamps, and renders the meters.
+Claude Code exposes a hook called a statusline script. Every time it renders its terminal
+statusline, it calls `~/.claude/statusline.ps1`. That script writes a flat `key=value` file
+to `@Resources/usage.txt` inside the skin folder. The Rainmeter skin reads that file every
+second via a Lua script, computes countdowns from the stored Unix epoch timestamps, and
+renders the meters.
 
 ```
 Claude Code (running) --> statusline.ps1 --> @Resources/usage.txt --> Rainmeter skin
@@ -185,7 +187,7 @@ are ignored.
 
 `install-agents.sh` is an interactive Bash script that installs and uninstalls Claude Code
 agents from the [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents)
-GitHub repository and keeps `agents.txt` in sync.
+repository and keeps `agents.txt` in sync.
 
 **Requirements:** Bash shell (Git Bash, WSL, or macOS/Linux terminal). Remote mode
 additionally requires `curl`.
@@ -265,9 +267,8 @@ clone the agents repository locally and use local source mode.
 
 ## Author
 
-Built with Claude Code
+[EricChan277](https://github.com/EricChan277)
 
 ## License
 
-No license is specified in this repository. All rights reserved by the author unless
-otherwise stated.
+MIT. See [LICENSE](LICENSE).
