@@ -1,0 +1,482 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AB000001 /* Theme.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000001 /* Theme.swift */; };
+		AB000002 /* Models.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000002 /* Models.swift */; };
+		AB000003 /* AgentScanner.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000003 /* AgentScanner.swift */; };
+		AB000004 /* UsageScanner.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000004 /* UsageScanner.swift */; };
+		AB000005 /* AppIntents.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000005 /* AppIntents.swift */; };
+		AB000006 /* TimelineProvider.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000006 /* TimelineProvider.swift */; };
+		AB000007 /* MeterView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000007 /* MeterView.swift */; };
+		AB000008 /* RingView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000008 /* RingView.swift */; };
+		AB000009 /* SparklineView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000009 /* SparklineView.swift */; };
+		AB000010 /* AgentItemView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000010 /* AgentItemView.swift */; };
+		AB000011 /* SearchInputView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000011 /* SearchInputView.swift */; };
+		AB000012 /* AgentsExplorerView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000012 /* AgentsExplorerView.swift */; };
+		AB000013 /* HeaderView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000013 /* HeaderView.swift */; };
+		AB000014 /* HifiLargeView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000014 /* HifiLargeView.swift */; };
+		AB000015 /* HifiXLargeView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000015 /* HifiXLargeView.swift */; };
+		AB000016 /* ClaudeUsageApp.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000016 /* ClaudeUsageApp.swift */; };
+		AB000017 /* ContentView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000017 /* ContentView.swift */; };
+		AB000018 /* PreferencesView.swift in HostApp */ = {isa = PBXBuildFile; fileRef = FA000018 /* PreferencesView.swift */; };
+		AC000001 /* ClaudeUsageWidget.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000019 /* ClaudeUsageWidget.swift */; };
+		AC000002 /* Theme.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000001 /* Theme.swift */; };
+		AC000003 /* Models.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000002 /* Models.swift */; };
+		AC000004 /* AgentScanner.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000003 /* AgentScanner.swift */; };
+		AC000005 /* UsageScanner.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000004 /* UsageScanner.swift */; };
+		AC000006 /* AppIntents.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000005 /* AppIntents.swift */; };
+		AC000007 /* TimelineProvider.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000006 /* TimelineProvider.swift */; };
+		AC000008 /* MeterView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000007 /* MeterView.swift */; };
+		AC000009 /* RingView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000008 /* RingView.swift */; };
+		AC000010 /* SparklineView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000009 /* SparklineView.swift */; };
+		AC000011 /* AgentItemView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000010 /* AgentItemView.swift */; };
+		AC000012 /* SearchInputView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000011 /* SearchInputView.swift */; };
+		AC000013 /* AgentsExplorerView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000012 /* AgentsExplorerView.swift */; };
+		AC000014 /* HeaderView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000013 /* HeaderView.swift */; };
+		AC000015 /* HifiLargeView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000014 /* HifiLargeView.swift */; };
+		AC000016 /* HifiXLargeView.swift in Widget */ = {isa = PBXBuildFile; fileRef = FA000015 /* HifiXLargeView.swift */; };
+		AE000010 /* ClaudeUsageWidgetExtension.appex in Embed */ = {isa = PBXBuildFile; fileRef = PROD0002 /* ClaudeUsageWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AD000001 /* widget proxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BABEEF01 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = T2000001;
+			remoteInfo = ClaudeUsageWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AE000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AE000010 /* ClaudeUsageWidgetExtension.appex in Embed */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		FA000001 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		FA000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		FA000003 /* AgentScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentScanner.swift; sourceTree = "<group>"; };
+		FA000004 /* UsageScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageScanner.swift; sourceTree = "<group>"; };
+		FA000005 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		FA000006 /* TimelineProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineProvider.swift; sourceTree = "<group>"; };
+		FA000007 /* MeterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeterView.swift; sourceTree = "<group>"; };
+		FA000008 /* RingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingView.swift; sourceTree = "<group>"; };
+		FA000009 /* SparklineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparklineView.swift; sourceTree = "<group>"; };
+		FA000010 /* AgentItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentItemView.swift; sourceTree = "<group>"; };
+		FA000011 /* SearchInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputView.swift; sourceTree = "<group>"; };
+		FA000012 /* AgentsExplorerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentsExplorerView.swift; sourceTree = "<group>"; };
+		FA000013 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
+		FA000014 /* HifiLargeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HifiLargeView.swift; sourceTree = "<group>"; };
+		FA000015 /* HifiXLargeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HifiXLargeView.swift; sourceTree = "<group>"; };
+		FA000016 /* ClaudeUsageApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageApp.swift; sourceTree = "<group>"; };
+		FA000017 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		FA000018 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
+		FA000019 /* ClaudeUsageWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeUsageWidget.swift; sourceTree = "<group>"; };
+		FA000020 /* ClaudeUsage.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeUsage.entitlements; sourceTree = "<group>"; };
+		FA000021 /* ClaudeUsageWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeUsageWidget.entitlements; sourceTree = "<group>"; };
+		FA000022 /* Info.plist (app) */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FA000023 /* Info.plist (widget) */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		PROD0001 /* ClaudeUsage.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClaudeUsage.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		PROD0002 /* ClaudeUsageWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ClaudeUsageWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BF000001 /* Frameworks (host) */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BF000002 /* Frameworks (widget) */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		GRP0000 /* root */ = {
+			isa = PBXGroup;
+			children = (
+				GRP0001 /* ClaudeUsage */,
+				GRP0002 /* ClaudeUsageWidgetExtension */,
+				GRP0003 /* Shared */,
+				GRP0099 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		GRP0001 /* ClaudeUsage */ = {
+			isa = PBXGroup;
+			children = (
+				FA000016 /* ClaudeUsageApp.swift */,
+				FA000017 /* ContentView.swift */,
+				FA000018 /* PreferencesView.swift */,
+				FA000020 /* ClaudeUsage.entitlements */,
+				FA000022 /* Info.plist (app) */,
+			);
+			path = ClaudeUsage;
+			sourceTree = "<group>";
+		};
+		GRP0002 /* ClaudeUsageWidgetExtension */ = {
+			isa = PBXGroup;
+			children = (
+				FA000019 /* ClaudeUsageWidget.swift */,
+				FA000021 /* ClaudeUsageWidget.entitlements */,
+				FA000023 /* Info.plist (widget) */,
+			);
+			path = ClaudeUsageWidgetExtension;
+			sourceTree = "<group>";
+		};
+		GRP0003 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				FA000001 /* Theme.swift */,
+				FA000002 /* Models.swift */,
+				FA000003 /* AgentScanner.swift */,
+				FA000004 /* UsageScanner.swift */,
+				FA000005 /* AppIntents.swift */,
+				FA000006 /* TimelineProvider.swift */,
+				GRP0004 /* Views */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		GRP0004 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				FA000007 /* MeterView.swift */,
+				FA000008 /* RingView.swift */,
+				FA000009 /* SparklineView.swift */,
+				FA000010 /* AgentItemView.swift */,
+				FA000011 /* SearchInputView.swift */,
+				FA000012 /* AgentsExplorerView.swift */,
+				FA000013 /* HeaderView.swift */,
+				FA000014 /* HifiLargeView.swift */,
+				FA000015 /* HifiXLargeView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		GRP0099 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				PROD0001 /* ClaudeUsage.app */,
+				PROD0002 /* ClaudeUsageWidgetExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		T1000001 /* ClaudeUsage */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = XC1000001;
+			buildPhases = (
+				BP100001 /* Sources */,
+				BF000001 /* Frameworks */,
+				AE000001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DEP00001 /* widget dependency */,
+			);
+			name = ClaudeUsage;
+			productName = ClaudeUsage;
+			productReference = PROD0001 /* ClaudeUsage.app */;
+			productType = "com.apple.product-type.application";
+		};
+		T2000001 /* ClaudeUsageWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = XC2000001;
+			buildPhases = (
+				BP200001 /* Sources */,
+				BF000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ClaudeUsageWidgetExtension;
+			productName = ClaudeUsageWidgetExtension;
+			productReference = PROD0002 /* ClaudeUsageWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BABEEF01 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					T1000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					T2000001 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = XC0000001;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = GRP0000;
+			productRefGroup = GRP0099 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				T1000001 /* ClaudeUsage */,
+				T2000001 /* ClaudeUsageWidgetExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BP100001 /* Sources (host) */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB000016 /* ClaudeUsageApp.swift in HostApp */,
+				AB000017 /* ContentView.swift in HostApp */,
+				AB000018 /* PreferencesView.swift in HostApp */,
+				AB000001 /* Theme.swift in HostApp */,
+				AB000002 /* Models.swift in HostApp */,
+				AB000003 /* AgentScanner.swift in HostApp */,
+				AB000004 /* UsageScanner.swift in HostApp */,
+				AB000005 /* AppIntents.swift in HostApp */,
+				AB000006 /* TimelineProvider.swift in HostApp */,
+				AB000007 /* MeterView.swift in HostApp */,
+				AB000008 /* RingView.swift in HostApp */,
+				AB000009 /* SparklineView.swift in HostApp */,
+				AB000010 /* AgentItemView.swift in HostApp */,
+				AB000011 /* SearchInputView.swift in HostApp */,
+				AB000012 /* AgentsExplorerView.swift in HostApp */,
+				AB000013 /* HeaderView.swift in HostApp */,
+				AB000014 /* HifiLargeView.swift in HostApp */,
+				AB000015 /* HifiXLargeView.swift in HostApp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BP200001 /* Sources (widget) */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC000001 /* ClaudeUsageWidget.swift in Widget */,
+				AC000002 /* Theme.swift in Widget */,
+				AC000003 /* Models.swift in Widget */,
+				AC000004 /* AgentScanner.swift in Widget */,
+				AC000005 /* UsageScanner.swift in Widget */,
+				AC000006 /* AppIntents.swift in Widget */,
+				AC000007 /* TimelineProvider.swift in Widget */,
+				AC000008 /* MeterView.swift in Widget */,
+				AC000009 /* RingView.swift in Widget */,
+				AC000010 /* SparklineView.swift in Widget */,
+				AC000011 /* AgentItemView.swift in Widget */,
+				AC000012 /* SearchInputView.swift in Widget */,
+				AC000013 /* AgentsExplorerView.swift in Widget */,
+				AC000014 /* HeaderView.swift in Widget */,
+				AC000015 /* HifiLargeView.swift in Widget */,
+				AC000016 /* HifiXLargeView.swift in Widget */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DEP00001 /* widget dependency */ = {
+			isa = PBXTargetDependency;
+			target = T2000001 /* ClaudeUsageWidgetExtension */;
+			targetProxy = AD000001 /* widget proxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BC000001 /* Debug (project) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BC000002 /* Release (project) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		BC100001 /* Debug (host app) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClaudeUsage/ClaudeUsage.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ClaudeUsage/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.claudewidget.ClaudeUsage";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		BC100002 /* Release (host app) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClaudeUsage/ClaudeUsage.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ClaudeUsage/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.claudewidget.ClaudeUsage";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		BC200001 /* Debug (widget) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClaudeUsageWidgetExtension/ClaudeUsageWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = ClaudeUsageWidgetExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.claudewidget.ClaudeUsage.widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		BC200002 /* Release (widget) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ClaudeUsageWidgetExtension/ClaudeUsageWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = ClaudeUsageWidgetExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.claudewidget.ClaudeUsage.widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		XC0000001 /* Build configuration list for PBXProject */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC000001 /* Debug */,
+				BC000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		XC1000001 /* Build configuration list for ClaudeUsage */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC100001 /* Debug */,
+				BC100002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		XC2000001 /* Build configuration list for ClaudeUsageWidgetExtension */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC200001 /* Debug */,
+				BC200002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = BABEEF01 /* Project object */;
+}
