@@ -20,8 +20,8 @@ the installed Rainmeter skin. Consequences:
   `usage.lua`, refresh the skin to see changes (right-click the widget → Refresh, or refresh
   via the Rainmeter Manager). There is no build/compile step for the skin itself.
 - `@Resources/usage.txt` and `@Resources/agents.txt` are runtime-generated and gitignored.
-  `usage.txt` is written by an external `~/.claude/statusline.ps1`; do not commit or hand-edit
-  it as source.
+  Both are written by `~/.claude/statusline.ps1` on every tick — do not commit or hand-edit
+  them as source. Any direct write to `agents.txt` will be overwritten within seconds.
 
 ## Architecture
 
@@ -51,6 +51,13 @@ ClaudeUsage.ini  meters
   `CollapseH`↔`ExpandH` in the `MeterBackground` shape. `ToggleAgents()` persists the value with
   `!WriteKeyValue` so it survives reloads. `agents.txt` lines are `CATEGORY|agent-name`; Lua groups
   by category (preserving file order) and greedily balances them into two columns by line count.
+- **Updating agent categories:** `agents.txt` is generated from `~/.claude/agents/*.md` by
+  `statusline.ps1`. The category each agent appears under is controlled by the `$catMembers`
+  ordered hashtable in that script — **edit `statusline.ps1`, not `agents.txt`**. The current
+  mapping follows the [VoltAgent/awesome-claude-code-subagents](https://github.com/VoltAgent/awesome-claude-code-subagents)
+  category structure (Core Development, Languages, Infrastructure, Quality & Security, AI & ML,
+  Dev Experience, Specialized, Business & Product, Orchestration, Research). New installed agents
+  not in `$catMembers` automatically fall to `Other`.
 
 ## Installers
 

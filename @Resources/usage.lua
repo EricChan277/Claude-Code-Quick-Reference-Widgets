@@ -75,8 +75,32 @@ function ToggleAgents()
     SKIN:Bang('!Redraw')
 end
 
+-- short category labels for the flat search-results view
+local SHORT_CAT = {
+    ['AI & ML']            = 'AI/ML',
+    ['Frontend & UI']      = 'FRONTEND',
+    ['Backend & API']      = 'BACKEND',
+    ['Mobile & Desktop']   = 'MOBILE',
+    ['Languages']          = 'LANG',
+    ['Quality & Security'] = 'QUALITY',
+    ['Ops & Performance']  = 'OPS',
+    ['Coordination & PM']  = 'COORD',
+    ['Other']              = 'OTHER',
+}
+
+-- current, trimmed search query from the SearchQuery skin variable ('' = no filter)
+local function searchQuery()
+    local q = SKIN:GetVariable('SearchQuery', '') or ''
+    return (q:gsub('^%s+', ''):gsub('%s+$', ''))
+end
+
+local function agentsOpen()
+    return tostring(SKIN:GetVariable('AgentsOpen', '1')) == '1'
+end
+
 -- read agents.txt ("CATEGORY|name" per line), group preserving category order,
--- and split whole categories into two balanced columns (greedy by line count)
+-- then render either the categorical two-column view or, when a search query is
+-- active, a flat list of case-insensitive substring matches.
 function loadAgents()
     local order, byCat, count = {}, {}, 0
     local f = io.open(AgentsFile, 'r')
@@ -92,6 +116,17 @@ function loadAgents()
         end
         f:close()
     end
+
+    local query = searchQuery()
+    if query ~= '' then
+        buildSearchView(order, byCat, count, query)
+    else
+        buildCategoryView(order, byCat, count)
+    end
+end
+
+-- default view: whole categories split into two balanced columns (greedy by line count)
+function buildCategoryView(order, byCat, count)
     vals['AGENTS_COUNT'] = tostring(count)
 
     -- render lines per category = 1 header + N agents, with a blank gap between groups
@@ -107,6 +142,66 @@ function loadAgents()
     end
     vals['AGENTS_L'] = table.concat(colA, '\n')
     vals['AGENTS_R'] = table.concat(colB, '\n')
+end
+
+-- search view: flat list of matches (ordered by category, then file order),
+-- balanced across the two columns; header count shows "matched/total".
+function buildSearchView(order, byCat, count, query)
+    local needle = query:lower()
+    local matches = {}
+    for _, cat in ipairs(order) do
+        for _, n in ipairs(byCat[cat]) do
+            if n:lower():find(needle, 1, true) then
+                matches[#matches + 1] = '  ' .. n .. '   ' .. (SHORT_CAT[cat] or cat)
+            end
+        end
+    end
+    vals['AGENTS_COUNT'] = #matches .. '/' .. count
+
+    if #matches == 0 then
+        vals['AGENTS_L'] = '  no agents match "' .. query .. '"'
+        vals['AGENTS_R'] = ''
+        return
+    end
+
+    local half = math.ceil(#matches / 2)
+    local colA, colB = {}, {}
+    for i, line in ipairs(matches) do
+        if i <= half then colA[#colA + 1] = line else colB[#colB + 1] = line end
+    end
+    vals['AGENTS_L'] = table.concat(colA, '\n')
+    vals['AGENTS_R'] = table.concat(colB, '\n')
+end
+
+-- re-filter immediately (called from the InputText / clear bangs so the list
+-- updates on the keystroke instead of waiting up to a full Update() tick)
+function ApplySearch()
+    loadAgents()
+    SKIN:Bang('!UpdateMeterGroup', 'Agents')
+    SKIN:Bang('!UpdateMeter', 'MeterAgentsHeader')
+    SKIN:Bang('!Redraw')
+end
+
+-- The search field's placeholder, query text, and clear button are three
+-- overlapping meters; these drive their Hidden flags (1 = hidden). All three
+-- hide when the agents panel is collapsed.
+function PlaceholderHidden()
+    if not agentsOpen() then return '1' end
+    return (searchQuery() == '') and '0' or '1'
+end
+
+function SearchTextHidden()
+    if not agentsOpen() then return '1' end
+    return (searchQuery() == '') and '1' or '0'
+end
+
+function ClearHidden()
+    return SearchTextHidden()
+end
+
+-- the typed query, for the active-query text meter
+function SearchText()
+    return searchQuery()
 end
 
 function countdown(epochStr, now)
