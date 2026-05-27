@@ -48,8 +48,11 @@ ClaudeUsage.ini  meters
 - **Naming aliases:** the statusline writes `FIVEH_*`/`SEVEND_*`; `Update()` aliases these to the
   meter-facing `SESSION_*`/`WEEK_ALL_*` names. Keep that in mind when tracing a value end-to-end.
 - **Color thresholds** live in `pctColor()`: green <50%, amber 50–79%, red ≥80%.
-- **Collapsible agents panel:** `AgentsOpen` (0/1) drives panel height by interpolating
-  `CollapseH`↔`ExpandH` in the `MeterBackground` shape. `ToggleAgents()` persists the value with
+- **Collapsible agents panel:** `AgentsOpen` (0/1) drives panel height in the `MeterBackground`
+  shape: when open, the height auto-fits the taller of the two agent columns via the
+  `Max([MeterAgentsLeft:H],[MeterAgentsRight:H])` section vars (`#AgentsTop#` + measured text +
+  bottom pad), so the panel grows/shrinks with the installed-agent count; when closed it uses the
+  fixed `CollapseH`. `ToggleAgents()` persists the value with
   `!WriteKeyValue` so it survives reloads. `agents.txt` lines are `CATEGORY|agent-name`; Lua groups
   by category (preserving file order) and greedily balances them into two columns by line count.
 - **Updating agent categories:** `agents.txt` is generated from `~/.claude/agents/*.md` by

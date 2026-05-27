@@ -20,7 +20,7 @@
 - Update cycle: 1000 ms
 - Single Script measure (`MeasureData`) running `usage.lua`
 - Meters grouped into sections: header, three limit blocks (SESSION / WEEK_ALL / CTX), divider, agents section
-- Dynamic window height: `AgentsOpen` variable interpolates between `CollapseH` (242px) and `ExpandH` (696px)
+- Dynamic window height: when collapsed, fixed `CollapseH` (242px); when open, the panel auto-fits the taller agent column via `Max([MeterAgentsLeft:H],[MeterAgentsRight:H])` so it grows/shrinks with the installed-agent count
 - Color palette defined as variables (`cText`, `cDim`, `cAgent`, `cAccent`, `cTrack`)
 
 **@Resources/usage.lua** — Computation engine (186 lines)
